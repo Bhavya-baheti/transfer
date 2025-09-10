@@ -1,0 +1,68 @@
+<!-- src/app/home/home.html -->
+<div class="container">
+  <h2>Your Documents</h2>
+ 
+  <!-- Hidden file input -->
+  <input #fileInput type="file" accept="application/pdf" (change)="onFileSelected($event)" multiple style="display:none" />
+ 
+  <div class="controls">
+    <button (click)="triggerFileInput()">Select PDF(s)</button>
+    <!-- Show selected files name(s) -->
+    <div *ngIf="getSelectedFilesArray().length > 0" class="selected-files">
+      <p>Selected Files:</p>
+      <ul>
+        <li *ngFor="let file of getSelectedFilesArray()">
+          {{ file.name }}
+        </li>
+      </ul>
+    </div>
+    <button (click)="uploadFiles()">Upload</button>
+    <button (click)="logout()">Logout</button>
+  </div>
+ 
+  <p *ngIf="uploadMessage" class="message">{{ uploadMessage }}</p>
+ 
+  <ul *ngIf="uploadedFiles.length > 0">
+    <li *ngFor="let f of uploadedFiles">
+      <a [href]="f.path" target="_blank" rel="noopener noreferrer">{{ f.originalName }}</a>
+      <button (click)="startChatWithDocument(f)">Chat with Document</button>
+    </li>
+  </ul>
+ 
+  <p *ngIf="uploadedFiles.length === 0">No documents uploaded yet.</p>
+
+  <!-- Chat Interface -->
+  <div class="split" *ngIf="showChat">
+    <div class="left">
+      <h3>Document: {{ activeDoc?.originalName }}</h3>
+      <p>Path: {{ activeDoc?.path }}</p>
+      <p>Status: {{ indexStatus }}</p>
+      <button (click)="clearChatHistory()" class="clear-btn">Clear Chat History</button>
+    </div>
+    <div class="right">
+      <h3>Chat with Document</h3>
+      <div class="chat-window">
+        <div *ngFor="let m of messages" class="msg" [class.user-msg]="m.role === 'user'" [class.assistant-msg]="m.role === 'assistant'">
+          <strong *ngIf="m.role === 'user'">You:</strong>
+          <strong *ngIf="m.role === 'assistant'">Assistant:</strong>
+          <div class="msg-content">{{ m.content }}</div>
+        </div>
+        <div *ngIf="isLoading" class="msg assistant-msg">
+          <strong>Assistant:</strong>
+          <div class="msg-content">Thinking...</div>
+        </div>
+      </div>
+      <div class="composer">
+        <input 
+          [(ngModel)]="prompt" 
+          placeholder="Ask something about the document..." 
+          (keyup.enter)="sendPrompt()"
+          [disabled]="isLoading"
+        />
+        <button (click)="sendPrompt()" [disabled]="isLoading || !prompt.trim()">
+          {{ isLoading ? 'Sending...' : 'Send' }}
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
